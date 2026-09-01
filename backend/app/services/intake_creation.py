@@ -10,7 +10,7 @@ from ..schemas import IntakeCreate
 from .ai_triage import AITriageInput, AITriageService
 
 
-logger = logging.getLogger("app.intake_creation")
+logger = logging.getLogger("uvicorn.error")
 logger.setLevel(logging.INFO)
 
 

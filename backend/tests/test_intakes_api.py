@@ -7,7 +7,7 @@ from app.services.ai_triage import AITriageResult, get_ai_triage_service
 
 
 def test_create_intake_persists_ai_enrichment(client, intake_payload, caplog):
-    caplog.set_level("INFO", logger="app.intake_creation")
+    caplog.set_level("INFO", logger="uvicorn.error")
     response = client.post("/api/intakes", json=intake_payload)
 
     assert response.status_code == 201
@@ -41,7 +41,7 @@ def test_create_intake_keeps_failed_analysis_record(client, intake_payload, capl
             raise RuntimeError("simulated provider failure")
 
     app.dependency_overrides[get_ai_triage_service] = FailingAITriageService
-    caplog.set_level("INFO", logger="app.intake_creation")
+    caplog.set_level("INFO", logger="uvicorn.error")
 
     response = client.post("/api/intakes", json=intake_payload)
 
@@ -83,7 +83,7 @@ def test_create_intake_logs_sanitized_validation_details(
             )
 
     app.dependency_overrides[get_ai_triage_service] = InvalidAITriageService
-    caplog.set_level("INFO", logger="app.intake_creation")
+    caplog.set_level("INFO", logger="uvicorn.error")
 
     response = client.post("/api/intakes", json=intake_payload)
 
