@@ -238,6 +238,18 @@ textarea:focus {
   outline: 3px solid #e0e7ff;
 }
 
+input[aria-invalid="true"],
+select[aria-invalid="true"],
+textarea[aria-invalid="true"] {
+  border-color: #dc2626;
+}
+
+.field-error-message {
+  color: #b91c1c;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
 input:disabled,
 select:disabled,
 textarea:disabled {

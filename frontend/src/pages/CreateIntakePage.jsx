@@ -15,21 +15,101 @@ const EMPTY_FORM = {
   industry: "",
 };
 
+const FIELD_NAMES = new Set(Object.keys(EMPTY_FORM));
+
+
+function validateForm(data) {
+  const errors = {};
+  for (const field of ["title", "description", "industry"]) {
+    if (!data[field].trim()) errors[field] = "Required.";
+  }
+
+  for (const field of [
+    "budget_min",
+    "budget_max",
+    "timeline_min",
+    "timeline_max",
+  ]) {
+    if (data[field] === "") {
+      errors[field] = "Required.";
+    } else if (Number(data[field]) < 0) {
+      errors[field] = "Must be 0 or greater.";
+    }
+  }
+
+  if (!data.timeline_unit) errors.timeline_unit = "Required.";
+  if (!errors.budget_min && !errors.budget_max) {
+    if (Number(data.budget_max) < Number(data.budget_min)) {
+      errors.budget_max = "Must be greater than or equal to Budget min.";
+    }
+  }
+  if (!errors.timeline_min && !errors.timeline_max) {
+    if (Number(data.timeline_max) < Number(data.timeline_min)) {
+      errors.timeline_max = "Must be greater than or equal to Timeline min.";
+    }
+  }
+  return errors;
+}
+
+
+function mapApiFieldErrors(details) {
+  const errors = {};
+  for (const detail of details) {
+    const field = detail.loc?.at(-1);
+    if (!FIELD_NAMES.has(field)) continue;
+
+    if (detail.type === "missing") errors[field] = "Required.";
+    else if (detail.type === "greater_than_equal") {
+      errors[field] = "Must be 0 or greater.";
+    } else {
+      errors[field] = detail.msg?.replace(/^Value error, /, "") || "Invalid value.";
+    }
+  }
+  return errors;
+}
+
+
+function FieldError({ errors, name }) {
+  if (!errors[name]) return null;
+  return (
+    <span className="field-error-message" id={`${name}-error`}>
+      {errors[name]}
+    </span>
+  );
+}
+
 
 export default function CreateIntakePage() {
   const [formData, setFormData] = useState(EMPTY_FORM);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState(null);
+  const [fieldErrors, setFieldErrors] = useState({});
   const navigate = useNavigate();
 
   function handleChange(event) {
     const { name, value } = event.target;
     setFormData((current) => ({ ...current, [name]: value }));
+    setFieldErrors((current) => {
+      const next = { ...current };
+      delete next[name];
+      if (name === "budget_min") delete next.budget_max;
+      if (name === "timeline_min") delete next.timeline_max;
+      return next;
+    });
   }
 
   async function handleSubmit(event) {
     event.preventDefault();
     setError(null);
+    const form = event.currentTarget;
+    const validationErrors = validateForm(formData);
+    if (Object.keys(validationErrors).length > 0) {
+      setFieldErrors(validationErrors);
+      form.elements[Object.keys(validationErrors)[0]]?.focus();
+      return;
+    }
+
+    setFieldErrors({});
     setIsSubmitting(true);
 
     try {
@@ -37,23 +117,6 @@ export default function CreateIntakePage() {
       const budgetMax = Number(formData.budget_max);
       const timelineMin = Number(formData.timeline_min);
       const timelineMax = Number(formData.timeline_max);
-      if (budgetMax < budgetMin) {
-        setError({
-          title: "Check your budget range",
-          message: "Budget max must be greater than or equal to budget min.",
-        });
-        setIsSubmitting(false);
-        return;
-      }
-      if (timelineMax < timelineMin) {
-        setError({
-          title: "Check your timeline range",
-          message: "Timeline max must be greater than or equal to timeline min.",
-        });
-        setIsSubmitting(false);
-        return;
-      }
-
       const intake = await createIntake({
         ...formData,
         budget_min: budgetMin,
@@ -70,13 +133,19 @@ export default function CreateIntakePage() {
           message: requestError.message,
           intakeId,
         });
+      } else if (requestError.status === 422) {
+        const apiFieldErrors = mapApiFieldErrors(requestError.details);
+        setFieldErrors(apiFieldErrors);
+        form.elements[Object.keys(apiFieldErrors)[0]]?.focus();
+        setError({
+          title: "Review the highlighted fields",
+          message: "Some values were not accepted. Correct them and try again.",
+        });
       } else {
         setError({
           title: "We couldn't save your intake",
           message:
-            requestError.status === 422
-              ? "Please review the required fields and try again."
-              : "Check your connection and try again. If the problem continues, contact the application owner.",
+            "Check your connection and try again. If the problem continues, contact the application owner.",
         });
       }
       setIsSubmitting(false);
@@ -95,7 +164,7 @@ export default function CreateIntakePage() {
         <span aria-hidden="true">*</span> Required field
       </p>
 
-      <form onSubmit={handleSubmit} aria-busy={isSubmitting}>
+      <form onSubmit={handleSubmit} aria-busy={isSubmitting} noValidate>
         <label>
           <span className="required-label">Title</span>
           <input
@@ -103,8 +172,11 @@ export default function CreateIntakePage() {
             value={formData.title}
             onChange={handleChange}
             disabled={isSubmitting}
+            aria-invalid={Boolean(fieldErrors.title)}
+            aria-describedby={fieldErrors.title ? "title-error" : undefined}
             required
           />
+          <FieldError errors={fieldErrors} name="title" />
         </label>
 
         <label>
@@ -115,8 +187,13 @@ export default function CreateIntakePage() {
             onChange={handleChange}
             rows="6"
             disabled={isSubmitting}
+            aria-invalid={Boolean(fieldErrors.description)}
+            aria-describedby={
+              fieldErrors.description ? "description-error" : undefined
+            }
             required
           />
+          <FieldError errors={fieldErrors} name="description" />
         </label>
 
         <div className="form-grid">
@@ -131,8 +208,13 @@ export default function CreateIntakePage() {
               min="0"
               step="1"
               disabled={isSubmitting}
+              aria-invalid={Boolean(fieldErrors.budget_min)}
+              aria-describedby={
+                fieldErrors.budget_min ? "budget_min-error" : undefined
+              }
               required
             />
+            <FieldError errors={fieldErrors} name="budget_min" />
           </label>
 
           <label>
@@ -146,8 +228,13 @@ export default function CreateIntakePage() {
               min="0"
               step="1"
               disabled={isSubmitting}
+              aria-invalid={Boolean(fieldErrors.budget_max)}
+              aria-describedby={
+                fieldErrors.budget_max ? "budget_max-error" : undefined
+              }
               required
             />
+            <FieldError errors={fieldErrors} name="budget_max" />
           </label>
         </div>
 
@@ -163,8 +250,13 @@ export default function CreateIntakePage() {
               min="0"
               step="1"
               disabled={isSubmitting}
+              aria-invalid={Boolean(fieldErrors.timeline_min)}
+              aria-describedby={
+                fieldErrors.timeline_min ? "timeline_min-error" : undefined
+              }
               required
             />
+            <FieldError errors={fieldErrors} name="timeline_min" />
           </label>
 
           <label>
@@ -178,8 +270,13 @@ export default function CreateIntakePage() {
               min="0"
               step="1"
               disabled={isSubmitting}
+              aria-invalid={Boolean(fieldErrors.timeline_max)}
+              aria-describedby={
+                fieldErrors.timeline_max ? "timeline_max-error" : undefined
+              }
               required
             />
+            <FieldError errors={fieldErrors} name="timeline_max" />
           </label>
 
           <label>
@@ -189,12 +286,17 @@ export default function CreateIntakePage() {
               value={formData.timeline_unit}
               onChange={handleChange}
               disabled={isSubmitting}
+              aria-invalid={Boolean(fieldErrors.timeline_unit)}
+              aria-describedby={
+                fieldErrors.timeline_unit ? "timeline_unit-error" : undefined
+              }
               required
             >
               <option value="weeks">Weeks</option>
               <option value="months">Months</option>
               <option value="years">Years</option>
             </select>
+            <FieldError errors={fieldErrors} name="timeline_unit" />
           </label>
         </div>
 
@@ -205,8 +307,11 @@ export default function CreateIntakePage() {
             value={formData.industry}
             onChange={handleChange}
             disabled={isSubmitting}
+            aria-invalid={Boolean(fieldErrors.industry)}
+            aria-describedby={fieldErrors.industry ? "industry-error" : undefined}
             required
           />
+          <FieldError errors={fieldErrors} name="industry" />
         </label>
 
         {isSubmitting && (

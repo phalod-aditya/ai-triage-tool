@@ -36,7 +36,11 @@ def create_intake(
 
 @router.get("", response_model=List[IntakeRead])
 def list_intakes(db: Session = Depends(get_db)) -> List[Intake]:
-    return list(db.scalars(select(Intake).order_by(Intake.id)).all())
+    return list(
+        db.scalars(
+            select(Intake).order_by(Intake.created_at.desc(), Intake.id.desc())
+        ).all()
+    )
 
 
 @router.get("/{intake_id}", response_model=IntakeRead)

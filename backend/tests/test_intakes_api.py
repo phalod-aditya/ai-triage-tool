@@ -99,7 +99,7 @@ def test_create_intake_logs_sanitized_validation_details(
     assert stored["ai_summary"] is None
 
 
-def test_list_intakes_returns_all_in_creation_order(client, intake_payload):
+def test_list_intakes_returns_newest_first(client, intake_payload):
     first = client.post("/api/intakes", json=intake_payload).json()
     second_payload = {
         **intake_payload,
@@ -110,7 +110,7 @@ def test_list_intakes_returns_all_in_creation_order(client, intake_payload):
     response = client.get("/api/intakes")
 
     assert response.status_code == 200
-    assert response.json() == [first, second]
+    assert response.json() == [second, first]
 
 
 def test_list_intakes_returns_empty_list_when_no_records_exist(client):
