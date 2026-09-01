@@ -1,7 +1,11 @@
 .env
 .venv/
+.coverage
+.pytest_cache/
+htmlcov/
 __pycache__/
 *.py[cod]
 backend/*.db
+backend/tests/.test-dbs/
 frontend/node_modules/
 frontend/dist/
