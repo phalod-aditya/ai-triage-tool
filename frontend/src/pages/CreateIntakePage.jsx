@@ -121,7 +121,7 @@ export default function CreateIntakePage() {
 
         <div className="form-grid">
           <label>
-            <span className="required-label">Budget min</span>
+            <span className="required-label">Budget min (USD)</span>
             <input
               type="number"
               name="budget_min"
@@ -136,7 +136,7 @@ export default function CreateIntakePage() {
           </label>
 
           <label>
-            <span className="required-label">Budget max</span>
+            <span className="required-label">Budget max (USD)</span>
             <input
               type="number"
               name="budget_max"
