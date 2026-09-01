@@ -17,7 +17,9 @@ AI Triage Tool
 
 4. React create -> list -> detail flow
 
-5. LLM integration
+5. LLM integration in isolation
 
-6. UX States Improvement
+6. Integrate AI + logs + failure handling
+
+7. UX States Improvement
 
