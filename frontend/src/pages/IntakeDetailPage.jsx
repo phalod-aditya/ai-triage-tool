@@ -17,8 +17,10 @@ export default function IntakeDetailPage() {
       .then((data) => {
         if (isCurrent) setIntake(data);
       })
-      .catch((requestError) => {
-        if (isCurrent) setError(requestError.message);
+      .catch(() => {
+        if (isCurrent) {
+          setError("We couldn't load this intake. Please try again.");
+        }
       })
       .finally(() => {
         if (isCurrent) setIsLoading(false);
@@ -29,14 +31,14 @@ export default function IntakeDetailPage() {
     };
   }, [id]);
 
-  if (isLoading) return <p className="state-message">Loading intake…</p>;
+  if (isLoading) return <p className="state-message">Loading intake...</p>;
 
   if (error) {
     return (
       <section>
         <p className="state-message error-message">{error}</p>
         <Link className="back-link" to="/">
-          ← Back to intakes
+          &larr; Back to intakes
         </Link>
       </section>
     );
@@ -45,7 +47,7 @@ export default function IntakeDetailPage() {
   return (
     <article>
       <Link className="back-link" to="/">
-        ← Back to intakes
+        &larr; Back to intakes
       </Link>
       <p className="eyebrow">Intake #{intake.id}</p>
       <h1>{intake.title}</h1>
@@ -91,20 +93,18 @@ export default function IntakeDetailPage() {
               <h3>Summary</h3>
               <p>{intake.ai_summary}</p>
             </div>
-
             <div>
               <h3>Tags</h3>
               <ul className="tag-list">
-                {intake.ai_tags.map((tag) => (
+                {(intake.ai_tags || []).map((tag) => (
                   <li key={tag}>{tag}</li>
                 ))}
               </ul>
             </div>
-
             <div>
               <h3>Risk checklist</h3>
               <ul className="risk-list">
-                {intake.ai_risks.map((risk) => (
+                {(intake.ai_risks || []).map((risk) => (
                   <li key={risk}>{risk}</li>
                 ))}
               </ul>
@@ -113,12 +113,15 @@ export default function IntakeDetailPage() {
         )}
 
         {intake.ai_status === "pending" && (
-          <p className="muted">AI analysis is currently pending.</p>
+          <p className="ai-state-message pending-message">
+            Your request is saved. AI analysis is pending.
+          </p>
         )}
 
         {intake.ai_status === "failed" && (
           <p className="error-message ai-state-message">
-            AI analysis failed. The original intake was saved successfully.
+            Your request was saved successfully, but AI analysis failed. The
+            original intake details are still available above.
           </p>
         )}
       </section>

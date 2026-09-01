@@ -16,7 +16,7 @@ const EMPTY_FORM = {
 export default function CreateIntakePage() {
   const [formData, setFormData] = useState(EMPTY_FORM);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useState(null);
   const navigate = useNavigate();
 
   function handleChange(event) {
@@ -26,14 +26,29 @@ export default function CreateIntakePage() {
 
   async function handleSubmit(event) {
     event.preventDefault();
-    setError("");
+    setError(null);
     setIsSubmitting(true);
 
     try {
       const intake = await createIntake(formData);
       navigate(`/intakes/${intake.id}`);
     } catch (requestError) {
-      setError(requestError.message);
+      if (requestError.status === 502) {
+        const intakeId = requestError.message.match(/Intake (\d+)/)?.[1];
+        setError({
+          title: "Intake saved, AI analysis failed",
+          message: requestError.message,
+          intakeId,
+        });
+      } else {
+        setError({
+          title: "We couldn't save your intake",
+          message:
+            requestError.status === 422
+              ? "Please review the required fields and try again."
+              : "Check your connection and try again. If the problem continues, contact the application owner.",
+        });
+      }
       setIsSubmitting(false);
     }
   }
@@ -41,19 +56,20 @@ export default function CreateIntakePage() {
   return (
     <section className="form-page">
       <Link className="back-link" to="/">
-        ← Back to intakes
+        &larr; Back to intakes
       </Link>
       <p className="eyebrow">New project request</p>
       <h1>Create intake</h1>
       <p className="muted">Capture the essential project details.</p>
 
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} aria-busy={isSubmitting}>
         <label>
           Title
           <input
             name="title"
             value={formData.title}
             onChange={handleChange}
+            disabled={isSubmitting}
             required
           />
         </label>
@@ -65,6 +81,7 @@ export default function CreateIntakePage() {
             value={formData.description}
             onChange={handleChange}
             rows="6"
+            disabled={isSubmitting}
             required
           />
         </label>
@@ -76,7 +93,8 @@ export default function CreateIntakePage() {
               name="budget_range"
               value={formData.budget_range}
               onChange={handleChange}
-              placeholder="e.g. $25k–$50k"
+              placeholder="e.g. $25k-$50k"
+              disabled={isSubmitting}
               required
             />
           </label>
@@ -88,6 +106,7 @@ export default function CreateIntakePage() {
               value={formData.timeline}
               onChange={handleChange}
               placeholder="e.g. 12 weeks"
+              disabled={isSubmitting}
               required
             />
           </label>
@@ -99,11 +118,29 @@ export default function CreateIntakePage() {
             name="industry"
             value={formData.industry}
             onChange={handleChange}
+            disabled={isSubmitting}
             required
           />
         </label>
 
-        {error && <p className="error-message">{error}</p>}
+        {isSubmitting && (
+          <div className="form-status" role="status" aria-live="polite">
+            <strong>Saving intake and running AI analysis...</strong>
+            <span>This may take a few moments.</span>
+          </div>
+        )}
+
+        {error && (
+          <div className="form-error" role="alert">
+            <strong>{error.title}</strong>
+            <span>{error.message}</span>
+            {error.intakeId && (
+              <Link to={`/intakes/${error.intakeId}`}>
+                Open the saved intake
+              </Link>
+            )}
+          </div>
+        )}
 
         <div className="form-actions">
           <Link className="button button-secondary" to="/">
@@ -114,7 +151,7 @@ export default function CreateIntakePage() {
             type="submit"
             disabled={isSubmitting}
           >
-            {isSubmitting ? "Creating…" : "Create intake"}
+            {isSubmitting ? "Saving and analyzing intake..." : "Create intake"}
           </button>
         </div>
       </form>

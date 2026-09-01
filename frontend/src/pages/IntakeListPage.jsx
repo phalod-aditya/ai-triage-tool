@@ -16,8 +16,8 @@ export default function IntakeListPage() {
       .then((data) => {
         if (isCurrent) setIntakes(data);
       })
-      .catch((requestError) => {
-        if (isCurrent) setError(requestError.message);
+      .catch(() => {
+        if (isCurrent) setError("We couldn't load intakes. Please try again.");
       })
       .finally(() => {
         if (isCurrent) setIsLoading(false);
@@ -31,14 +31,12 @@ export default function IntakeListPage() {
   return (
     <section>
       <div className="page-heading">
-        <div>
-          <p className="eyebrow">Project requests</p>
-          <h1>Intakes</h1>
-          <p className="muted">Review incoming project requests.</p>
-        </div>
+        <p className="eyebrow">Project requests</p>
+        <h1>Intakes</h1>
+        <p className="muted">Review incoming project requests.</p>
       </div>
 
-      {isLoading && <p className="state-message">Loading intakes…</p>}
+      {isLoading && <p className="state-message">Loading intakes...</p>}
       {error && <p className="state-message error-message">{error}</p>}
       {!isLoading && !error && intakes.length === 0 && (
         <div className="empty-state">
@@ -61,6 +59,9 @@ export default function IntakeListPage() {
               <div>
                 <h2>{intake.title}</h2>
                 <p className="muted">{intake.industry}</p>
+                <span className={`status-badge status-${intake.ai_status}`}>
+                  AI {intake.ai_status}
+                </span>
               </div>
               <dl className="card-meta">
                 <div>

@@ -1,26 +1,45 @@
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
 
+export class ApiError extends Error {
+  constructor(message, status) {
+    super(message);
+    this.name = "ApiError";
+    this.status = status;
+  }
+}
+
+
 async function request(path, options = {}) {
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    ...options,
-    headers: {
-      "Content-Type": "application/json",
-      ...options.headers,
-    },
-  });
+  let response;
+  try {
+    response = await fetch(`${API_BASE_URL}${path}`, {
+      ...options,
+      headers: {
+        "Content-Type": "application/json",
+        ...options.headers,
+      },
+    });
+  } catch {
+    throw new ApiError("Unable to reach the server. Please try again.", 0);
+  }
 
   if (!response.ok) {
-    let message = "Something went wrong. Please try again.";
+    let detail = "";
     try {
       const body = await response.json();
-      if (typeof body.detail === "string") {
-        message = body.detail;
-      }
+      if (typeof body.detail === "string") detail = body.detail;
     } catch {
-      // Keep the user-friendly fallback when the response is not JSON.
+      // Use a safe fallback when the response is not JSON.
     }
-    throw new Error(message);
+
+    const message =
+      response.status === 502 && detail
+        ? detail
+        : response.status < 500 && detail
+          ? detail
+          : "The server could not complete the request. Please try again.";
+    throw new ApiError(message, response.status);
   }
 
   return response.json();
