@@ -15,10 +15,9 @@ AI Triage Tool
 - define correct endpoints
 - validation simple
 
-4. 
+4. React create -> list -> detail flow
 
+5. LLM integration
 
-n. LLM integration
-
-UX States Improvement
+6. UX States Improvement
 

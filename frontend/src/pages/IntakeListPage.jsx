@@ -1,0 +1,81 @@
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+
+import { getIntakes } from "../api/intakes.js";
+
+
+export default function IntakeListPage() {
+  const [intakes, setIntakes] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    let isCurrent = true;
+
+    getIntakes()
+      .then((data) => {
+        if (isCurrent) setIntakes(data);
+      })
+      .catch((requestError) => {
+        if (isCurrent) setError(requestError.message);
+      })
+      .finally(() => {
+        if (isCurrent) setIsLoading(false);
+      });
+
+    return () => {
+      isCurrent = false;
+    };
+  }, []);
+
+  return (
+    <section>
+      <div className="page-heading">
+        <div>
+          <p className="eyebrow">Project requests</p>
+          <h1>Intakes</h1>
+          <p className="muted">Review incoming project requests.</p>
+        </div>
+      </div>
+
+      {isLoading && <p className="state-message">Loading intakes…</p>}
+      {error && <p className="state-message error-message">{error}</p>}
+      {!isLoading && !error && intakes.length === 0 && (
+        <div className="empty-state">
+          <h2>No intakes yet</h2>
+          <p>Create the first project request to get started.</p>
+          <Link className="button button-primary" to="/intakes/new">
+            Create intake
+          </Link>
+        </div>
+      )}
+
+      {!isLoading && !error && intakes.length > 0 && (
+        <div className="intake-list">
+          {intakes.map((intake) => (
+            <Link
+              className="intake-card"
+              key={intake.id}
+              to={`/intakes/${intake.id}`}
+            >
+              <div>
+                <h2>{intake.title}</h2>
+                <p className="muted">{intake.industry}</p>
+              </div>
+              <dl className="card-meta">
+                <div>
+                  <dt>Budget</dt>
+                  <dd>{intake.budget_range}</dd>
+                </div>
+                <div>
+                  <dt>Timeline</dt>
+                  <dd>{intake.timeline}</dd>
+                </div>
+              </dl>
+            </Link>
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
