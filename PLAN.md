@@ -25,5 +25,7 @@ AI Triage Tool
 
 8. UI Improvements
 
-9. 
+9. Tests & Verification
+
+10. README.md + DECISIONS.md
 

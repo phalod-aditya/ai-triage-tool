@@ -7,8 +7,11 @@ import { createIntake } from "../api/intakes.js";
 const EMPTY_FORM = {
   title: "",
   description: "",
-  budget_range: "",
-  timeline: "",
+  budget_min: "",
+  budget_max: "",
+  timeline_min: "",
+  timeline_max: "",
+  timeline_unit: "weeks",
   industry: "",
 };
 
@@ -30,7 +33,34 @@ export default function CreateIntakePage() {
     setIsSubmitting(true);
 
     try {
-      const intake = await createIntake(formData);
+      const budgetMin = Number(formData.budget_min);
+      const budgetMax = Number(formData.budget_max);
+      const timelineMin = Number(formData.timeline_min);
+      const timelineMax = Number(formData.timeline_max);
+      if (budgetMax < budgetMin) {
+        setError({
+          title: "Check your budget range",
+          message: "Budget max must be greater than or equal to budget min.",
+        });
+        setIsSubmitting(false);
+        return;
+      }
+      if (timelineMax < timelineMin) {
+        setError({
+          title: "Check your timeline range",
+          message: "Timeline max must be greater than or equal to timeline min.",
+        });
+        setIsSubmitting(false);
+        return;
+      }
+
+      const intake = await createIntake({
+        ...formData,
+        budget_min: budgetMin,
+        budget_max: budgetMax,
+        timeline_min: timelineMin,
+        timeline_max: timelineMax,
+      });
       navigate(`/intakes/${intake.id}`);
     } catch (requestError) {
       if (requestError.status === 502) {
@@ -61,10 +91,13 @@ export default function CreateIntakePage() {
       <p className="eyebrow">New project request</p>
       <h1>Create intake</h1>
       <p className="muted">Capture the essential project details.</p>
+      <p className="required-note">
+        <span aria-hidden="true">*</span> Required field
+      </p>
 
       <form onSubmit={handleSubmit} aria-busy={isSubmitting}>
         <label>
-          Title
+          <span className="required-label">Title</span>
           <input
             name="title"
             value={formData.title}
@@ -75,7 +108,7 @@ export default function CreateIntakePage() {
         </label>
 
         <label>
-          Description
+          <span className="required-label">Description</span>
           <textarea
             name="description"
             value={formData.description}
@@ -88,32 +121,85 @@ export default function CreateIntakePage() {
 
         <div className="form-grid">
           <label>
-            Budget range
+            <span className="required-label">Budget min</span>
             <input
-              name="budget_range"
-              value={formData.budget_range}
+              type="number"
+              name="budget_min"
+              value={formData.budget_min}
               onChange={handleChange}
-              placeholder="e.g. $25k-$50k"
+              placeholder="e.g. 15000"
+              min="0"
+              step="1"
               disabled={isSubmitting}
               required
             />
           </label>
 
           <label>
-            Timeline
+            <span className="required-label">Budget max</span>
             <input
-              name="timeline"
-              value={formData.timeline}
+              type="number"
+              name="budget_max"
+              value={formData.budget_max}
               onChange={handleChange}
-              placeholder="e.g. 12 weeks"
+              placeholder="e.g. 30000"
+              min="0"
+              step="1"
               disabled={isSubmitting}
               required
             />
           </label>
         </div>
 
+        <div className="timeline-grid">
+          <label>
+            <span className="required-label">Timeline min</span>
+            <input
+              type="number"
+              name="timeline_min"
+              value={formData.timeline_min}
+              onChange={handleChange}
+              placeholder="e.g. 8"
+              min="0"
+              step="1"
+              disabled={isSubmitting}
+              required
+            />
+          </label>
+
+          <label>
+            <span className="required-label">Timeline max</span>
+            <input
+              type="number"
+              name="timeline_max"
+              value={formData.timeline_max}
+              onChange={handleChange}
+              placeholder="e.g. 12"
+              min="0"
+              step="1"
+              disabled={isSubmitting}
+              required
+            />
+          </label>
+
+          <label>
+            <span className="required-label">Timeline unit</span>
+            <select
+              name="timeline_unit"
+              value={formData.timeline_unit}
+              onChange={handleChange}
+              disabled={isSubmitting}
+              required
+            >
+              <option value="weeks">Weeks</option>
+              <option value="months">Months</option>
+              <option value="years">Years</option>
+            </select>
+          </label>
+        </div>
+
         <label>
-          Industry
+          <span className="required-label">Industry</span>
           <input
             name="industry"
             value={formData.industry}

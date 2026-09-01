@@ -13,8 +13,15 @@ class Intake(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     title: Mapped[str] = mapped_column(String(200), nullable=False)
     description: Mapped[str] = mapped_column(Text, nullable=False)
-    budget_range: Mapped[str] = mapped_column(String(100), nullable=False)
-    timeline: Mapped[str] = mapped_column(String(100), nullable=False)
+    # Kept for compatibility with existing local SQLite databases.
+    budget_range: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+    budget_min: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    budget_max: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    # Kept for compatibility with existing local SQLite databases.
+    timeline: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+    timeline_min: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    timeline_max: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    timeline_unit: Mapped[Optional[str]] = mapped_column(String(10), nullable=True)
     industry: Mapped[str] = mapped_column(String(100), nullable=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime,

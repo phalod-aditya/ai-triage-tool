@@ -132,8 +132,11 @@ def test_get_intake_returns_clear_404(client):
     [
         pytest.param({"remove": "title"}, id="missing-title"),
         pytest.param({"remove": "description"}, id="missing-description"),
-        pytest.param({"remove": "budget_range"}, id="missing-budget-range"),
-        pytest.param({"remove": "timeline"}, id="missing-timeline"),
+        pytest.param({"remove": "budget_min"}, id="missing-budget-min"),
+        pytest.param({"remove": "budget_max"}, id="missing-budget-max"),
+        pytest.param({"remove": "timeline_min"}, id="missing-timeline-min"),
+        pytest.param({"remove": "timeline_max"}, id="missing-timeline-max"),
+        pytest.param({"remove": "timeline_unit"}, id="missing-timeline-unit"),
         pytest.param({"remove": "industry"}, id="missing-industry"),
         pytest.param(
             {"add": {"created_at": "2000-01-01T00:00:00"}},
@@ -154,4 +157,30 @@ def test_create_intake_rejects_invalid_payloads(
     response = client.post("/api/intakes", json=intake_payload)
 
     assert response.status_code == 422
+    assert client.get("/api/intakes").json() == []
+
+
+def test_create_intake_rejects_budget_max_below_min(client, intake_payload):
+    intake_payload["budget_min"] = 30000
+    intake_payload["budget_max"] = 15000
+
+    response = client.post("/api/intakes", json=intake_payload)
+
+    assert response.status_code == 422
+    assert "budget max must be greater than or equal to budget min" in str(
+        response.json()
+    )
+    assert client.get("/api/intakes").json() == []
+
+
+def test_create_intake_rejects_timeline_max_below_min(client, intake_payload):
+    intake_payload["timeline_min"] = 12
+    intake_payload["timeline_max"] = 8
+
+    response = client.post("/api/intakes", json=intake_payload)
+
+    assert response.status_code == 422
+    assert "timeline max must be greater than or equal to timeline min" in str(
+        response.json()
+    )
     assert client.get("/api/intakes").json() == []

@@ -39,7 +39,15 @@ def create_and_analyze_intake(
     started_at = perf_counter()
     logger.info("intake_create_started ai_status=pending")
 
-    intake = Intake(**payload.model_dump(), ai_status="pending")
+    intake = Intake(
+        **payload.model_dump(),
+        budget_range=f"{payload.budget_min}-{payload.budget_max}",
+        timeline=(
+            f"{payload.timeline_min}-{payload.timeline_max} "
+            f"{payload.timeline_unit}"
+        ),
+        ai_status="pending",
+    )
     db.add(intake)
     db.commit()
     db.refresh(intake)

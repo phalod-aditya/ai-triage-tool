@@ -5,13 +5,13 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from . import models  # noqa: F401 - registers tables with SQLAlchemy metadata
-from .database import Base, engine
+from .database import initialize_database
 from .routers.intakes import router as intakes_router
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    Base.metadata.create_all(bind=engine)
+    initialize_database()
     yield
 
 

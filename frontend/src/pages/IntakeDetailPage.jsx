@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 
 import { getIntake } from "../api/intakes.js";
+import { formatBudgetRange } from "../utils/formatBudget.js";
+import { formatTimelineRange } from "../utils/formatTimeline.js";
 
 
 export default function IntakeDetailPage() {
@@ -63,11 +65,17 @@ export default function IntakeDetailPage() {
         <dl className="detail-fields">
           <div>
             <dt>Budget range</dt>
-            <dd>{intake.budget_range}</dd>
+            <dd>{formatBudgetRange(intake.budget_min, intake.budget_max)}</dd>
           </div>
           <div>
             <dt>Timeline</dt>
-            <dd>{intake.timeline}</dd>
+            <dd>
+              {formatTimelineRange(
+                intake.timeline_min,
+                intake.timeline_max,
+                intake.timeline_unit,
+              )}
+            </dd>
           </div>
           <div>
             <dt>Industry</dt>

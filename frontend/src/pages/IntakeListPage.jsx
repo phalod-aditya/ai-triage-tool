@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
 import { getIntakes } from "../api/intakes.js";
+import { formatBudgetRange } from "../utils/formatBudget.js";
+import { formatTimelineRange } from "../utils/formatTimeline.js";
 
 
 export default function IntakeListPage() {
@@ -66,11 +68,19 @@ export default function IntakeListPage() {
               <dl className="card-meta">
                 <div>
                   <dt>Budget</dt>
-                  <dd>{intake.budget_range}</dd>
+                  <dd>
+                    {formatBudgetRange(intake.budget_min, intake.budget_max)}
+                  </dd>
                 </div>
                 <div>
                   <dt>Timeline</dt>
-                  <dd>{intake.timeline}</dd>
+                  <dd>
+                    {formatTimelineRange(
+                      intake.timeline_min,
+                      intake.timeline_max,
+                      intake.timeline_unit,
+                    )}
+                  </dd>
                 </div>
               </dl>
             </Link>

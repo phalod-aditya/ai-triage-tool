@@ -9,8 +9,11 @@ from app.services.ai_triage import AITriageInput, AITriageResult, AITriageServic
 SAMPLE_INPUT = {
     "title": "Customer portal redesign",
     "description": "Redesign the customer self-service portal.",
-    "budget_range": "$25k-$50k",
-    "timeline": "12 weeks",
+    "budget_min": 25000,
+    "budget_max": 50000,
+    "timeline_min": 8,
+    "timeline_max": 12,
+    "timeline_unit": "weeks",
     "industry": "Healthcare",
 }
 

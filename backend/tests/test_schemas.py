@@ -10,8 +10,11 @@ from app.schemas import IntakeCreate, IntakeRead
 REQUIRED_FIELDS = [
     "title",
     "description",
-    "budget_range",
-    "timeline",
+    "budget_min",
+    "budget_max",
+    "timeline_min",
+    "timeline_max",
+    "timeline_unit",
     "industry",
 ]
 
@@ -20,6 +23,62 @@ def test_intake_create_accepts_valid_input(intake_payload):
     intake = IntakeCreate.model_validate(intake_payload)
 
     assert intake.model_dump() == intake_payload
+
+
+@pytest.mark.parametrize("field", ["budget_min", "budget_max"])
+def test_intake_create_rejects_negative_budget(intake_payload, field):
+    intake_payload[field] = -1
+
+    with pytest.raises(ValidationError) as error:
+        IntakeCreate.model_validate(intake_payload)
+
+    assert error.value.errors()[0]["loc"] == (field,)
+    assert error.value.errors()[0]["type"] == "greater_than_equal"
+
+
+def test_intake_create_rejects_budget_max_below_min(intake_payload):
+    intake_payload["budget_min"] = 30000
+    intake_payload["budget_max"] = 15000
+
+    with pytest.raises(ValidationError) as error:
+        IntakeCreate.model_validate(intake_payload)
+
+    assert "budget max must be greater than or equal to budget min" in str(
+        error.value
+    )
+
+
+@pytest.mark.parametrize("field", ["timeline_min", "timeline_max"])
+def test_intake_create_rejects_negative_timeline(intake_payload, field):
+    intake_payload[field] = -1
+
+    with pytest.raises(ValidationError) as error:
+        IntakeCreate.model_validate(intake_payload)
+
+    assert error.value.errors()[0]["loc"] == (field,)
+    assert error.value.errors()[0]["type"] == "greater_than_equal"
+
+
+def test_intake_create_rejects_timeline_max_below_min(intake_payload):
+    intake_payload["timeline_min"] = 12
+    intake_payload["timeline_max"] = 8
+
+    with pytest.raises(ValidationError) as error:
+        IntakeCreate.model_validate(intake_payload)
+
+    assert "timeline max must be greater than or equal to timeline min" in str(
+        error.value
+    )
+
+
+def test_intake_create_rejects_unknown_timeline_unit(intake_payload):
+    intake_payload["timeline_unit"] = "days"
+
+    with pytest.raises(ValidationError) as error:
+        IntakeCreate.model_validate(intake_payload)
+
+    assert error.value.errors()[0]["loc"] == ("timeline_unit",)
+    assert error.value.errors()[0]["type"] == "literal_error"
 
 
 @pytest.mark.parametrize("missing_field", REQUIRED_FIELDS)

@@ -190,6 +190,21 @@ form {
   margin: 0 auto;
 }
 
+.required-note {
+  margin: 1rem 0 0;
+  color: #64748b;
+  font-size: 0.85rem;
+}
+
+.required-note span,
+.required-label::after {
+  color: #dc2626;
+}
+
+.required-label::after {
+  content: " *";
+}
+
 form {
   display: grid;
   gap: 1.25rem;
@@ -205,6 +220,7 @@ label {
 }
 
 input,
+select,
 textarea {
   width: 100%;
   padding: 0.75rem 0.85rem;
@@ -216,12 +232,14 @@ textarea {
 }
 
 input:focus,
+select:focus,
 textarea:focus {
   border-color: #6366f1;
   outline: 3px solid #e0e7ff;
 }
 
 input:disabled,
+select:disabled,
 textarea:disabled {
   color: #64748b;
   background: #f8fafc;
@@ -235,6 +253,12 @@ textarea {
 .form-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.timeline-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 1rem;
 }
 
@@ -410,7 +434,8 @@ textarea {
   }
 
   .card-meta,
-  .form-grid {
+  .form-grid,
+  .timeline-grid {
     grid-template-columns: 1fr;
   }
 }

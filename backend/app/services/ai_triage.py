@@ -1,6 +1,6 @@
 import os
 import re
-from typing import List
+from typing import List, Literal
 
 from openai import OpenAI
 from pydantic import BaseModel, ConfigDict, Field, field_validator
@@ -11,8 +11,11 @@ class AITriageInput(BaseModel):
 
     title: str
     description: str
-    budget_range: str
-    timeline: str
+    budget_min: int
+    budget_max: int
+    timeline_min: int
+    timeline_max: int
+    timeline_unit: Literal["weeks", "months", "years"]
     industry: str
 
 
