@@ -73,6 +73,55 @@ export default function IntakeDetailPage() {
           </div>
         </dl>
       </div>
+
+      <section className="ai-panel">
+        <div className="ai-panel-heading">
+          <div>
+            <p className="eyebrow">AI triage</p>
+            <h2>Analysis</h2>
+          </div>
+          <span className={`status-badge status-${intake.ai_status}`}>
+            {intake.ai_status}
+          </span>
+        </div>
+
+        {intake.ai_status === "complete" && (
+          <div className="ai-results">
+            <div>
+              <h3>Summary</h3>
+              <p>{intake.ai_summary}</p>
+            </div>
+
+            <div>
+              <h3>Tags</h3>
+              <ul className="tag-list">
+                {intake.ai_tags.map((tag) => (
+                  <li key={tag}>{tag}</li>
+                ))}
+              </ul>
+            </div>
+
+            <div>
+              <h3>Risk checklist</h3>
+              <ul className="risk-list">
+                {intake.ai_risks.map((risk) => (
+                  <li key={risk}>{risk}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        )}
+
+        {intake.ai_status === "pending" && (
+          <p className="muted">AI analysis is currently pending.</p>
+        )}
+
+        {intake.ai_status === "failed" && (
+          <p className="error-message ai-state-message">
+            AI analysis failed. The original intake was saved successfully.
+          </p>
+        )}
+      </section>
     </article>
   );
 }

@@ -87,3 +87,7 @@ class AITriageService:
         if response.output_parsed is None:
             raise ValueError("The model did not return a triage result")
         return AITriageResult.model_validate(response.output_parsed)
+
+
+def get_ai_triage_service() -> AITriageService:
+    return AITriageService()

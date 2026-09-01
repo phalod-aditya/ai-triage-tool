@@ -9,6 +9,19 @@ from sqlalchemy.orm import Session, sessionmaker
 
 from app.database import Base, get_db
 from app.main import app
+from app.services.ai_triage import AITriageResult, get_ai_triage_service
+
+
+class SuccessfulAITriageService:
+    def analyze_intake(self, intake):
+        return AITriageResult(
+            summary=(
+                "The project requests a customer self-service portal redesign. "
+                "Its healthcare context makes scope and compliance alignment important."
+            ),
+            tags=["Healthcare", "Portal", "UX redesign"],
+            risks=["Confirm regulatory requirements", "Validate the delivery scope"],
+        )
 
 
 @pytest.fixture
@@ -46,6 +59,7 @@ def client() -> Generator[TestClient, None, None]:
             db.close()
 
     app.dependency_overrides[get_db] = override_get_db
+    app.dependency_overrides[get_ai_triage_service] = SuccessfulAITriageService
     try:
         with TestClient(app) as test_client:
             yield test_client

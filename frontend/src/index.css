@@ -256,6 +256,101 @@ textarea {
   margin: 0;
 }
 
+.ai-panel {
+  margin-top: 1rem;
+  padding: 1.5rem;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.75rem;
+}
+
+.ai-panel-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.ai-panel-heading h2,
+.ai-panel-heading p {
+  margin-bottom: 0;
+}
+
+.status-badge {
+  padding: 0.35rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 750;
+  text-transform: capitalize;
+}
+
+.status-complete {
+  color: #166534;
+  background: #dcfce7;
+}
+
+.status-pending {
+  color: #92400e;
+  background: #fef3c7;
+}
+
+.status-failed {
+  color: #991b1b;
+  background: #fee2e2;
+}
+
+.ai-results {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.ai-results h3 {
+  margin: 0 0 0.6rem;
+  font-size: 0.9rem;
+}
+
+.ai-results p {
+  margin-bottom: 0;
+  line-height: 1.65;
+}
+
+.tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.tag-list li {
+  padding: 0.35rem 0.65rem;
+  color: #3730a3;
+  background: #eef2ff;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 650;
+}
+
+.risk-list {
+  display: grid;
+  gap: 0.55rem;
+  padding-left: 1.25rem;
+  margin: 0;
+}
+
+.risk-list li {
+  line-height: 1.5;
+}
+
+.ai-state-message {
+  padding: 0.9rem 1rem;
+  margin-bottom: 0;
+  border: 1px solid #fecaca;
+  border-radius: 0.5rem;
+}
+
 @media (max-width: 640px) {
   .site-header {
     padding: 0 1rem;
