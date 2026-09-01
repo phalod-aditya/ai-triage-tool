@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from . import models  # noqa: F401 - registers tables with SQLAlchemy metadata
 from .database import Base, engine
+from .routers.intakes import router as intakes_router
 
 
 @asynccontextmanager
@@ -15,6 +16,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="AI Triage Tool API", lifespan=lifespan)
+app.include_router(intakes_router)
 
 app.add_middleware(
     CORSMiddleware,

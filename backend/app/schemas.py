@@ -5,6 +5,8 @@ from pydantic import BaseModel, ConfigDict
 
 
 class IntakeCreate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
     title: str
     description: str
     budget_range: str
