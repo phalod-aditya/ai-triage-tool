@@ -4,6 +4,10 @@ A small internal tool for capturing inbound project requests and enriching them
 with a structured AI triage result. It uses FastAPI, React/Vite,
 SQLite/SQLAlchemy, and the OpenAI API.
 
+## Example output
+
+![Completed AI triage detail view](docs/images/ai-triage-demo.png)
+
 ## A. How to run
 
 ### Prerequisites
