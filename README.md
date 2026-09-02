@@ -191,14 +191,117 @@ intake remains persisted, its AI fields remain empty, and `ai_status` becomes
 
 ### Error handling
 
-- Invalid API input returns `422` and is not persisted.
-- Missing intake IDs return a clear `404`.
-- An LLM failure returns `502`, but the original intake stays saved with
-  `ai_status=failed`.
-- Frontend messages do not display raw stack traces or backend internals.
-- Logs exclude API keys, prompts, complete customer descriptions, raw model
-  responses, and rejected values. Pydantic failures log only sanitized field,
-  type, and message details.
+The application distinguishes between three failure classes:
+
+1. **Invalid user input**
+2. **LLM/provider failure**
+3. **Invalid LLM output**
+
+This keeps failures explicit and prevents AI issues from corrupting or deleting
+the original customer request.
+
+#### Invalid user input
+
+- Invalid API input returns `422`.
+- Invalid requests are rejected before persistence.
+- Frontend validation catches required fields and invalid budget/timeline ranges
+  before submission where possible.
+- Backend validation remains authoritative and independently enforces the same
+  constraints.
+- Missing intake IDs return `404`.
+
+#### LLM/provider failure
+
+The original intake is persisted **before** AI enrichment begins.
+
+If the OpenAI request fails because of a timeout, provider error, authentication
+issue, network failure, or another model-call exception:
+
+1. The original intake remains persisted.
+2. `ai_status` transitions from `pending` to `failed`.
+3. AI output fields remain empty rather than storing partial or misleading data.
+4. A sanitized failure reason is recorded for debugging.
+5. The API returns a failure response that allows the frontend to distinguish
+   "intake was not saved" from "intake was saved but AI analysis failed".
+6. The frontend tells the user that the request was saved and provides access
+   to the persisted intake.
+
+This behavior is intentional: the customer-submitted intake is the system of
+record, while AI analysis is treated as enrichment. An external model failure
+should therefore not cause valid user data to be lost.
+
+No automatic retries are currently performed. For this timeboxed local
+implementation, an explicit failed state was preferred over hidden retry
+behavior. A production version would likely add bounded retries for transient
+provider failures and/or move enrichment to a background job.
+
+#### Invalid LLM output
+
+A successful HTTP/model call is not considered sufficient on its own.
+
+The AI response is validated against the product contract:
+
+- summary must contain two to three sentences
+- exactly three unique tags must be returned
+- the risk checklist must be non-empty
+- the response must conform to the structured Pydantic output model
+
+If the model returns syntactically valid structured output that violates these
+rules:
+
+1. The enrichment is rejected.
+2. No malformed AI fields are persisted.
+3. The original intake remains saved.
+4. `ai_status` becomes `failed`.
+5. Sanitized validation details are logged.
+
+This separates **provider success** from **product-valid AI output**.
+
+#### Logging and observability
+
+Workflow logs are emitted from the backend for the critical create and AI
+enrichment path.
+
+Successful requests include events such as:
+
+- `intake_persisted`
+- `ai_analysis_started`
+- `ai_analysis_returned`
+- `ai_status=complete`
+- `duration_ms`
+
+Failed requests include:
+
+- `ai_analysis_failed`
+- `ai_status=failed`
+- sanitized validation or exception metadata
+
+Logs intentionally exclude:
+
+- API keys
+- full prompts
+- complete customer descriptions
+- raw model responses
+- rejected sensitive values
+- stack traces in user-facing responses
+
+The goal is to make the AI call diagnosable without unnecessarily duplicating
+customer content into logs.
+
+#### User-facing behavior
+
+The frontend presents different messages depending on the failure:
+
+- **Validation failure:** the user is shown field-level guidance and submission
+  is blocked.
+- **Save/API failure:** the user is told that the intake could not be saved.
+- **AI failure after save:** the user is told that the intake was saved but AI
+  analysis could not be completed.
+- **Detail failure:** the user sees a clear error state rather than raw backend
+  output.
+
+Raw exception messages, provider payloads, and stack traces are never shown
+directly to the user.
 
 ## C. Verification
 
